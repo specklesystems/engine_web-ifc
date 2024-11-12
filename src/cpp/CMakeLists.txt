@@ -18,6 +18,7 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_options(-Wno-narrowing)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # collect source files
@@ -29,7 +30,8 @@ file(GLOB WebIfcManager modelmanager/*.cpp)
 file(GLOB WebIfcAPI web-ifc-wasm.cpp)
 file(GLOB WebIfcUtility utility/*.cpp)
 file(GLOB WebIfcTestSourceFiles test/*.cpp)
-file(GLOB WebIfcTestingMain web-ifc-test.cpp)
+file(GLOB WebIfcInterface Api.cpp)
+#file(GLOB WebIfcTestingMain web-ifc-test.cpp)
 
 # download the external projects and save their paths
 Message("Downloading FastFloat")
@@ -141,7 +143,8 @@ if(NOT EMSCRIPTEN)
 	set_tests_properties(web-ifc-test PROPERTIES LABELS "web-ifc")
 
 	# build parameters for web-ifc in testing environment
-	add_executable(web-ifc ${WebIfcManager} ${WebIfcSchema} ${WebIfcParsing} ${WebIfcUtility} ${WebIfcGeometry} ${WebIfcTestingMain} "./test/io_helpers.cpp")
+	add_library(web-ifc SHARED ${WebIfcManager} ${WebIfcSchema} ${WebIfcParsing} ${WebIfcUtility} ${WebIfcGeometry} ${WebIfcInterface} "./test/io_helpers.cpp")
+	# add_executable(web-ifc ${WebIfcManager} ${WebIfcSchema} ${WebIfcParsing} ${WebIfcUtility} ${WebIfcGeometry} ${WebIfcTestingMain} "./test/io_helpers.cpp")
 	param_setter(web-ifc)
 	target_include_directories(web-ifc PUBLIC ${tinycpptest_SOURCE_DIR}/Sources)
 
