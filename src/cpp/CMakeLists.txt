@@ -147,7 +147,6 @@ if(NOT EMSCRIPTEN)
 
 	# build parameters for web-ifc in testing environment
 	add_library(web-ifc SHARED ${WebIfcManager} ${WebIfcSchema} ${WebIfcParsing} ${WebIfcUtility} ${WebIfcGeometry} ${WebIfcInterface} "./test/io_helpers.cpp")
-	target_link_libraries(web-ifc -static-libgcc -static-libstdc++)
 	# add_executable(web-ifc ${WebIfcManager} ${WebIfcSchema} ${WebIfcParsing} ${WebIfcUtility} ${WebIfcGeometry} ${WebIfcTestingMain} "./test/io_helpers.cpp")
 	param_setter(web-ifc)
 	target_include_directories(web-ifc PUBLIC ${tinycpptest_SOURCE_DIR}/Sources)

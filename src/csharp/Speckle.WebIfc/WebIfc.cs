@@ -4,15 +4,16 @@ namespace Speckle.WebIfc;
 
  public static class WebIfc
     {
+        
         // NOTE: make sure the DLL is in the same directory as the built DLLs or Executable. 
         private const string DllName = "libweb-ifc.so"; 
         
         // InitializeApi
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName)]
         public static extern IntPtr InitializeApi();
 
         // FinalizeApi
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName)]
         public static extern void FinalizeApi(IntPtr api);
 
         // LoadModel
