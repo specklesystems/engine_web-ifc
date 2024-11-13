@@ -8,7 +8,13 @@ public class MeshConverter : IMeshConverter
 {
   public unsafe Mesh Convert(IfcMesh mesh)
   {
-    var r = new Mesh() { faces = [], vertices = [], colors = [], units = "meters"};
+    var r = new Mesh()
+    {
+      faces = [],
+      vertices = [],
+      colors = [],
+      units = "meters",
+    };
     var m = (double*)mesh.Transform;
     var vp = mesh.GetVertices();
     var ip = mesh.GetIndexes();
@@ -35,11 +41,13 @@ public class MeshConverter : IMeshConverter
     }
 
     var color = mesh.GetColor();
-    r.colors = [
-      (int)(color->A * 255), 
-      (int)(color->R * 255), 
+    r.colors =
+    [
+      (int)(color->A * 255),
+      (int)(color->R * 255),
       (int)(color->G * 255),
-      (int)(color->B * 255)];
+      (int)(color->B * 255),
+    ];
     return r;
   }
 }
