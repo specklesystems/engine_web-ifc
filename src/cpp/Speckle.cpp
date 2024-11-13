@@ -1,15 +1,3 @@
-// Apache 2.0 License
-// Author: Christopher Diggins of Ara 3D Inc for Speckle Systems Ltd.
-// This is a C++ wrapper around the Web-IFC component library by Tom van Diggelen and That Open Company 
-// that is appropriate for use via PInvoke
-// It is built based on the specific needs of a Speckle IFC import service:
-// https://github.com/specklesystems/speckle-server/blob/main/packages/fileimport-service/ifc/parser_v2.js#L26
-//
-// And was inspired by:
-// - https://github.com/ThatOpen/engine_web-ifc/blob/main/src/ts/web-ifc-api.ts
-// - https://github.com/ThatOpen/engine_web-ifc/blob/main/src/cpp/web-ifc-wasm.cpp
-// - https://github.com/ThatOpen/engine_web-ifc/blob/main/src/cpp/web-ifc-test.cpp
-
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -48,6 +36,7 @@ extern "C"
 {
     EXPORT Api* InitializeApi();
     EXPORT void FinalizeApi(Api* api);
+    EXPORT const char* GetVersion();
     EXPORT Model* LoadModel(Api* api, const char* fileName);
     EXPORT ::Geometry* GetGeometryFromId(Api* api, Model* model, uint32_t id);
     EXPORT int GetNumGeometries(Api* api, Model* model);
@@ -193,6 +182,10 @@ void FinalizeApi(Api* api) {
     delete api->schemaManager;
     delete api->settings;
     delete api;
+}
+
+const char* GetVersion() {
+    return WEB_IFC_VERSION_NUMBER.data();
 }
 
 Model* LoadModel(Api* api, const char* fileName) {
