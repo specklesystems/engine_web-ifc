@@ -1,14 +1,12 @@
-﻿
-
+﻿using Microsoft.Extensions.DependencyInjection;
 using Speckle.WebIfc;
 
-Console.WriteLine(Environment.Is64BitOperatingSystem);
+var serviceCollection = new ServiceCollection();
+serviceCollection.AddSpeckleWebIfc();
+var serviceProvider = serviceCollection.BuildServiceProvider();
 
+var factory = serviceProvider.GetRequiredService<IIfcFactory>();
 
-var api = WebIfc.InitializeApi();
+var model = factory.Open("/home/adam/git/engine_web-ifc/examples/example.ifc");
 
-var model = WebIfc.LoadModel(api, "/home/adam/git/engine_web-ifc/examples/example.ifc");
-
-Console.WriteLine(WebIfc.GetNumGeometries(api, model));
-
-WebIfc.FinalizeApi(api);
+Console.WriteLine(model.GetNumGeometries());
