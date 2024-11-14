@@ -18,9 +18,18 @@ public class ModelConverter(IGeometryConverter geometryConverter) : IModelConver
       c.elements.Add(geometryConverter.Convert(geo));
     }
 
-    for (uint i = 0; i < model.GetMaxId(); i++)
+    var max = model.GetMaxId();
+    for (uint i = 0; i <max; i++)
     {
-      Console.WriteLine(model.GetLine(i));
+      var l = model.GetLine(i);
+      if (l is not null)
+      {
+        var x = l.Arguments();
+        if (x.Length > 0)
+        {
+          Console.WriteLine($"{l.Id} {l.Type} {l.Arguments()}");
+        }
+      }
     }
 
     if (c.elements.Count > 0)

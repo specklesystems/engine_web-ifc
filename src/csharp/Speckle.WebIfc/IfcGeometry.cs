@@ -1,25 +1,25 @@
 using System.Runtime.InteropServices;
 namespace Speckle.WebIfc;
 
-public class IfcGeometry(IntPtr api, IntPtr geometry)
+public class IfcGeometry( IntPtr geometry)
 {
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern IntPtr GetMesh(IntPtr api, IntPtr geometry, int index);
+  private static extern IntPtr GetMesh( IntPtr geometry, int index);
 
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern int GetNumMeshes(IntPtr api, IntPtr geometry);
+  private static extern int GetNumMeshes( IntPtr geometry);
   
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern uint GetGeometryType(IntPtr api, IntPtr geometry);
+  private static extern uint GetGeometryType( IntPtr geometry);
 
-  public IfcMesh GetMesh(int i) => new(api, GetMesh(api, geometry, i));
+  public IfcMesh GetMesh(int i) => new(GetMesh(geometry, i));
 
-  public int MeshCount => GetNumMeshes(api, geometry);
+  public int MeshCount => GetNumMeshes(geometry);
 
-  public IfcSchemaType Type => (IfcSchemaType)GetGeometryType(api, geometry);
+  public IfcSchemaType Type => (IfcSchemaType)GetGeometryType(geometry);
 
   public IEnumerable<IfcMesh> GetMeshes()
   {

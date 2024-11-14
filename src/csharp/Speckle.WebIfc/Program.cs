@@ -16,7 +16,7 @@ var serviceProvider = serviceCollection.BuildServiceProvider();
 var factory = serviceProvider.GetRequiredService<IIfcFactory>();
 Console.WriteLine(factory.Version);
 
-var model = factory.Open("/home/adam/git/engine_web-ifc/examples/example.ifc");
+var model = factory.Open("/home/adam/git/engine_web-ifc/examples/ifcbridge-model01.ifc");
 
 var converter = serviceProvider.GetRequiredService<IModelConverter>();
 var b = converter.Convert(model);

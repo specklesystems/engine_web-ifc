@@ -21,7 +21,7 @@ public class IfcFactory : IIfcFactory
   //probably never disposing this
   private static readonly IntPtr _ptr = InitializeApi();
 
-  public IfcModel Open(string fullPath) => new(_ptr, LoadModel(_ptr, fullPath));
+  public IfcModel Open(string fullPath) => new(LoadModel(_ptr, fullPath));
 
   public string Version => GetVersion();
 }

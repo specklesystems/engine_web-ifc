@@ -20,6 +20,7 @@ class Api;
 class Mesh;
 class Geometry;
 class Vertex;
+class Line;
 
 #if defined(_MSC_VER)
     //  Microsoft 
@@ -38,22 +39,26 @@ extern "C"
     EXPORT void FinalizeApi(Api* api);
     EXPORT char* GetVersion();
     EXPORT Model* LoadModel(Api* api, const char* fileName);
-    EXPORT ::Geometry* GetGeometryFromId(Api* api, Model* model, uint32_t id);
-    EXPORT int GetNumGeometries(Api* api, Model* model);
-    EXPORT ::Geometry* GetGeometryFromIndex(Api* api, Model* model, int32_t index);
-    EXPORT int GetNumMeshes(Api* api, ::Geometry* geom);
-    EXPORT uint32_t GetMaxId(Api* api, Model* model);
-    EXPORT char* GetLine(Api* api, Model* model, uint32_t id);
-    EXPORT uint32_t GetGeometryId(Api* api, ::Geometry* geom);
-    EXPORT uint32_t GetGeometryType(Api* api, ::Geometry* geom);
-    EXPORT Mesh* GetMesh(Api* api, ::Geometry* geom, int index);
-    EXPORT uint32_t GetMeshId(Api* api, ::Mesh* mesh);
-    EXPORT double* GetTransform(Api* api, Mesh* mesh);
-    EXPORT double* GetColor(Api* api, Mesh* mesh);
-    EXPORT int GetNumVertices(Api* api, Mesh* mesh);
-    EXPORT Vertex* GetVertices(Api* api, Mesh* mesh);
-    EXPORT int GetNumIndices(Api* api, Mesh* mesh);
-    EXPORT uint32_t* GetIndices(Api* api, Mesh* mesh);
+    EXPORT ::Geometry* GetGeometryFromId(Model* model, uint32_t id);
+    EXPORT int GetNumGeometries(Model* model);
+    EXPORT ::Geometry* GetGeometryFromIndex(Model* model, int32_t index);
+    EXPORT int GetNumMeshes(::Geometry* geom);
+    EXPORT ::Line* GetLineFromModel( Model* model, uint32_t id);
+    EXPORT uint32_t GetGeometryId(::Geometry* geom);
+    EXPORT uint32_t GetGeometryType(::Geometry* geom);
+    EXPORT Mesh* GetMesh(::Geometry* geom, int index);
+    EXPORT uint32_t GetMeshId(::Mesh* mesh);
+    EXPORT double* GetTransform(Mesh* mesh);
+    EXPORT double* GetColor(Mesh* mesh);
+    EXPORT int GetNumVertices(Mesh* mesh);
+    EXPORT Vertex* GetVertices(Mesh* mesh);
+    EXPORT int GetNumIndices(Mesh* mesh);
+    EXPORT uint32_t* GetIndices( Mesh* mesh);
+    
+    EXPORT uint32_t GetMaxId(Model* model);
+    EXPORT uint32_t GetLineId(::Line* line);
+    EXPORT uint32_t GetLineType(::Line* line);
+    EXPORT char* GetLineArguments(::Line* line);
 }
 
 // Vertex data structure as used by the web-IFC engine
@@ -94,12 +99,13 @@ struct Geometry
     {}
 };
 
-struct Property 
+struct Line 
 {
     uint32_t id;
     uint32_t type;  
-    Property(uint32_t id, uint32_t type)
-        : id(id), type(type) 
+    std::string arguments;
+    Line(uint32_t id, uint32_t type, std::string arguments)
+        : id(id), type(type), arguments(arguments) 
     {}
 };
 
@@ -141,128 +147,123 @@ struct Model
         }        
     }
 
-    std::string GetLine(uint32_t expressID)
+    ::Line* GetLine(uint32_t expressID)
     {
-        if (!loader->IsValidExpressID(expressID)) return "";
+        if (!loader->IsValidExpressID(expressID)) 
+            return nullptr;
         uint32_t lineType = loader->GetLineType(expressID);
-        if (lineType==0) return "";
+        if (lineType==0) 
+            return nullptr;
 
         loader->MoveToArgumentOffset(expressID, 0);
 
-        auto arguments = GetArgs();
-
-        std::string retVal;
-        retVal += "\"ID\": " + std::to_string(expressID) + ", ";
-        retVal += "\"type\": " + std::to_string(lineType) + ", ";
-        retVal += "\"arguments\": " + arguments;
-        retVal += "}";
-
-        return retVal;
+        auto arguments = GetArgs(false, false);
+        return new Line(expressID, lineType, arguments);
     }
 
-//copied from cpp test
-std::string GetArgs(bool inObject=false, bool inList=false)
-{
-    std::string arguments;
-    size_t size = 0;
-    bool endOfLine = false;
-    while (!loader->IsAtEnd() && !endOfLine)
+    //copied from cpp test
+    std::string GetArgs(bool inObject, bool inList)
     {
-        webifc::parsing::IfcTokenType t = loader->GetTokenType();
+        std::string arguments;
+        size_t size = 0;
+        bool endOfLine = false;
+        while (!loader->IsAtEnd() && !endOfLine)
+        {
+            webifc::parsing::IfcTokenType t = loader->GetTokenType();
 
+            switch (t)
+            {
+                case webifc::parsing::IfcTokenType::LINE_END:
+                {
+                    endOfLine = true;
+                    break;
+                }
+                case webifc::parsing::IfcTokenType::EMPTY:
+                {
+                    //arguments += " Empty ";
+                    break;
+                }
+                case webifc::parsing::IfcTokenType::SET_BEGIN:
+                {
+                    arguments += GetArgs(false, true);
+                    break;
+                }
+                case webifc::parsing::IfcTokenType::SET_END:
+                {
+                    endOfLine = true;
+                    break;
+                }
+                case webifc::parsing::IfcTokenType::LABEL:
+                {
+                    // read label
+                    std::string obj; 
+                    obj = " type: LABEL ";
+                    loader->StepBack();
+                    auto s=loader->GetStringArgument();
+                    // read set open
+                    loader->GetTokenType();
+                    obj += " value " + GetArgs(true,false) + " ";
+                    arguments += obj;
+                    break;
+                }
+                case webifc::parsing::IfcTokenType::STRING:
+                case webifc::parsing::IfcTokenType::ENUM:
+                case webifc::parsing::IfcTokenType::REAL:
+                case webifc::parsing::IfcTokenType::INTEGER:
+                case webifc::parsing::IfcTokenType::REF:
+                {
+                    loader->StepBack();
+                    std::string obj;
+                    if (inObject) obj = ReadValue(t);
+                    else {
+                        std::string obj; 
+                        obj += " type REF ";
+                        obj += ReadValue(t) + " ";
+                    }
+                    arguments += obj;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        return arguments;
+    }
+
+    //copied from cpp test
+    std::string ReadValue(webifc::parsing::IfcTokenType t)
+    {
         switch (t)
         {
-            case webifc::parsing::IfcTokenType::LINE_END:
-            {
-                endOfLine = true;
-                break;
-            }
-            case webifc::parsing::IfcTokenType::EMPTY:
-            {
-                arguments += " Empty ";
-                break;
-            }
-            case webifc::parsing::IfcTokenType::SET_BEGIN:
-            {
-                arguments += GetArgs(false, true);
-                break;
-            }
-            case webifc::parsing::IfcTokenType::SET_END:
-            {
-                endOfLine = true;
-                break;
-            }
-            case webifc::parsing::IfcTokenType::LABEL:
-            {
-                // read label
-                std::string obj; 
-                obj = " type: LABEL ";
-                loader->StepBack();
-                auto s=loader->GetStringArgument();
-                // read set open
-                loader->GetTokenType();
-                obj += " value " + GetArgs(loader,true) + " ";
-                arguments += obj;
-                break;
-            }
-            case webifc::parsing::IfcTokenType::STRING:
-            case webifc::parsing::IfcTokenType::ENUM:
-            case webifc::parsing::IfcTokenType::REAL:
-            case webifc::parsing::IfcTokenType::INTEGER:
-            case webifc::parsing::IfcTokenType::REF:
-            {
-                loader->StepBack();
-                std::string obj;
-                if (inObject) obj = ReadValue(t);
-                else {
-                    std::string obj; 
-                    obj += " type REF ";
-                    obj += ReadValue(t) + " ";
-                }
-                arguments += obj;
-                break;
-            }
-            default:
-                break;
+        case webifc::parsing::IfcTokenType::STRING:
+        {
+            return loader->GetDecodedStringArgument();
+        }
+        case webifc::parsing::IfcTokenType::ENUM:
+        {
+            std::string_view s = loader->GetStringArgument();
+            return std::string(s);
+        }
+        case webifc::parsing::IfcTokenType::REAL:
+        {
+            std::string_view s = loader->GetDoubleArgumentAsString();
+            return std::string(s);
+        }
+        case webifc::parsing::IfcTokenType::INTEGER:
+        {
+            long d = loader->GetIntArgument();
+            return std::to_string(d);
+        }
+        case webifc::parsing::IfcTokenType::REF:
+        {
+            uint32_t ref = loader->GetRefArgument();
+            return std::to_string(ref);
+        }
+        default:
+            // use undefined to signal val parse issue
+            return "";
         }
     }
-    return arguments;
-}
-
-//copied from cpp test
-std::string ReadValue(webifc::parsing::IfcTokenType t)
-{
-    switch (t)
-    {
-    case webifc::parsing::IfcTokenType::STRING:
-    {
-        return loader->GetDecodedStringArgument();
-    }
-    case webifc::parsing::IfcTokenType::ENUM:
-    {
-        std::string_view s = loader->GetStringArgument();
-        return std::string(s);
-    }
-    case webifc::parsing::IfcTokenType::REAL:
-    {
-        std::string_view s = loader->GetDoubleArgumentAsString();
-        return std::string(s);
-    }
-    case webifc::parsing::IfcTokenType::INTEGER:
-    {
-        long d = loader->GetIntArgument();
-        return std::to_string(d);
-    }
-    case webifc::parsing::IfcTokenType::REF:
-    {
-        uint32_t ref = loader->GetRefArgument();
-        return std::to_string(ref);
-    }
-    default:
-        // use undefined to signal val parse issue
-        return "";
-    }
-}
 
 
     ::Geometry* GetGeometry(uint32_t id)
@@ -335,67 +336,79 @@ Model* LoadModel(Api* api, const char* fileName) {
     return api->LoadModel(fileName);
 }
 
-double* GetTransform(Api* api, Mesh* mesh) {
+double* GetTransform(Mesh* mesh) {
     return mesh->transform.data();
 }
 
-double* GetColor(Api* api, Mesh* mesh) {
+double* GetColor(Mesh* mesh) {
     return &mesh->color.R;
 }
 
-::Geometry* GetGeometryFromId(Api* api, Model* model, uint32_t id) {
+::Geometry* GetGeometryFromId(Model* model, uint32_t id) {
     return model->GetGeometry(id);
 }
 
-int GetNumGeometries(Api* api, Model* model) {
+int GetNumGeometries(Model* model) {
     return model->geometries.size();
 }
 
-::Geometry* GetGeometryFromIndex(Api* api, Model* model, int32_t index) {
+::Geometry* GetGeometryFromIndex(Model* model, int32_t index) {
     return model->geometryList[index];
 }
 
-uint32_t GetMaxId(Api* api, Model* model) {
+uint32_t GetMaxId(Model* model) {
     return model->GetMaxId();
 }
 
-char* GetLine(Api* api, Model* model, uint32_t id) {
-    auto l = model->GetLine(id);
-    return strdup(l.data());
+::Line* GetLineFromModel(Model* model, uint32_t id) {
+    return model->GetLine(id);
 }
 
-uint32_t GetGeometryId(Api* api, ::Geometry* geom) {
+uint32_t GetLineId(::Line* line) {
+    return line->id;
+}
+
+uint32_t GetLineType(::Line* line) {
+    return line->type;
+}
+
+char* GetLineArguments(::Line* line) {
+     char* d = line->arguments.data();
+    return strdup(d);
+}
+
+uint32_t GetGeometryId(::Geometry* geom) {
     return geom->id;
 }
 
-uint32_t GetGeometryType(Api* api, ::Geometry* geom) {
+uint32_t GetGeometryType(::Geometry* geom) {
     return geom->type;
 }
 
-int GetNumMeshes(Api* api, ::Geometry* geom) {
+int GetNumMeshes(::Geometry* geom) {
     return geom->meshes.size();
 }
 
-Mesh* GetMesh(Api* api, ::Geometry* geom, int index) {
+Mesh* GetMesh(::Geometry* geom, int index) {
     return geom->meshes[index];
 }
 
-uint32_t GetMeshId(Api* api, ::Mesh* mesh) {
+uint32_t GetMeshId(::Mesh* mesh) {
     return mesh->id;
 }
 
-int GetNumVertices(Api* api, Mesh* mesh) {
+int GetNumVertices(Mesh* mesh) {
     return mesh->geometry->vertexData.size() / 6;
 }
 
-Vertex* GetVertices(Api* api, Mesh* mesh) {
+Vertex* GetVertices(Mesh* mesh) {
     return reinterpret_cast<Vertex*>(mesh->geometry->vertexData.data());
 }
 
-int GetNumIndices(Api* api, Mesh* mesh) {
+int GetNumIndices(Mesh* mesh) {
     return mesh->geometry->indexData.size();
 }
 
-uint32_t* GetIndices(Api* api, Mesh* mesh) {
+uint32_t* GetIndices(Mesh* mesh) {
     return mesh->geometry->indexData.data();
 }
