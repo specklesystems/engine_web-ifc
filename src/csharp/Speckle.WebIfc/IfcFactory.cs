@@ -14,8 +14,14 @@ public class IfcFactory : IIfcFactory
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
   private static extern IntPtr LoadModel(IntPtr api, string fileName);
 
+  [DllImport(WebIfc.DllName, CharSet = WebIfc.Set)]
+  [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
+  private static extern string GetVersion();
+
   //probably never disposing this
   private static readonly IntPtr _ptr = InitializeApi();
 
   public IfcModel Open(string fullPath) => new(_ptr, LoadModel(_ptr, fullPath));
+
+  public string Version => GetVersion();
 }

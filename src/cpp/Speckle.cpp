@@ -36,7 +36,7 @@ extern "C"
 {
     EXPORT Api* InitializeApi();
     EXPORT void FinalizeApi(Api* api);
-    EXPORT const char* GetVersion();
+    EXPORT char* GetVersion();
     EXPORT Model* LoadModel(Api* api, const char* fileName);
     EXPORT ::Geometry* GetGeometryFromId(Api* api, Model* model, uint32_t id);
     EXPORT int GetNumGeometries(Api* api, Model* model);
@@ -184,8 +184,9 @@ void FinalizeApi(Api* api) {
     delete api;
 }
 
-const char* GetVersion() {
-    return WEB_IFC_VERSION_NUMBER.data();
+char* GetVersion() {
+    const char* v = WEB_IFC_VERSION_NUMBER.data();
+    return strdup(v);
 }
 
 Model* LoadModel(Api* api, const char* fileName) {

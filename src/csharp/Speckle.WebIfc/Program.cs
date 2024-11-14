@@ -14,6 +14,7 @@ serviceCollection.AddMatchingInterfacesAsTransient(Assembly.GetExecutingAssembly
 var serviceProvider = serviceCollection.BuildServiceProvider();
 
 var factory = serviceProvider.GetRequiredService<IIfcFactory>();
+Console.WriteLine(factory.Version);
 
 var model = factory.Open("/home/adam/git/engine_web-ifc/examples/example.ifc");
 
