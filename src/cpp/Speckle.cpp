@@ -42,7 +42,10 @@ extern "C"
     EXPORT int GetNumGeometries(Api* api, Model* model);
     EXPORT ::Geometry* GetGeometryFromIndex(Api* api, Model* model, int32_t index);
     EXPORT int GetNumMeshes(Api* api, ::Geometry* geom);
+    EXPORT uint32_t GetMaxId(Api* api, Model* model);
+    EXPORT char* GetLine(Api* api, Model* model, uint32_t id);
     EXPORT uint32_t GetGeometryId(Api* api, ::Geometry* geom);
+    EXPORT uint32_t GetGeometryType(Api* api, ::Geometry* geom);
     EXPORT Mesh* GetMesh(Api* api, ::Geometry* geom, int index);
     EXPORT uint32_t GetMeshId(Api* api, ::Mesh* mesh);
     EXPORT double* GetTransform(Api* api, Mesh* mesh);
@@ -83,12 +86,23 @@ struct Mesh
 struct Geometry 
 {
     uint32_t id;
+    uint32_t type;
     IfcFlatMesh* flatMesh;
     std::vector<Mesh*> meshes;    
-    Geometry(uint32_t id)
-        : id(id), flatMesh(nullptr) 
+    Geometry(uint32_t id, uint32_t type)
+        : id(id), flatMesh(nullptr), type(type) 
     {}
 };
+
+struct Property 
+{
+    uint32_t id;
+    uint32_t type;  
+    Property(uint32_t id, uint32_t type)
+        : id(id), type(type) 
+    {}
+};
+
 
 // Model class, abstraction over the web-IFC engine concept of Model ID
 struct Model
@@ -115,7 +129,7 @@ struct Model
             for (auto eId : loader->GetExpressIDsWithType(type))
             {
                 auto flatMesh = geometryProcessor->GetFlatMesh(eId);
-                auto g = new ::Geometry(eId);
+                auto g = new ::Geometry(eId, type);
                 for (auto& placedGeom : flatMesh.geometries)
                 {
                     auto mesh = ToMesh(placedGeom);
@@ -126,6 +140,130 @@ struct Model
             }
         }        
     }
+
+    std::string GetLine(uint32_t expressID)
+    {
+        if (!loader->IsValidExpressID(expressID)) return "";
+        uint32_t lineType = loader->GetLineType(expressID);
+        if (lineType==0) return "";
+
+        loader->MoveToArgumentOffset(expressID, 0);
+
+        auto arguments = GetArgs();
+
+        std::string retVal;
+        retVal += "\"ID\": " + std::to_string(expressID) + ", ";
+        retVal += "\"type\": " + std::to_string(lineType) + ", ";
+        retVal += "\"arguments\": " + arguments;
+        retVal += "}";
+
+        return retVal;
+    }
+
+//copied from cpp test
+std::string GetArgs(bool inObject=false, bool inList=false)
+{
+    std::string arguments;
+    size_t size = 0;
+    bool endOfLine = false;
+    while (!loader->IsAtEnd() && !endOfLine)
+    {
+        webifc::parsing::IfcTokenType t = loader->GetTokenType();
+
+        switch (t)
+        {
+            case webifc::parsing::IfcTokenType::LINE_END:
+            {
+                endOfLine = true;
+                break;
+            }
+            case webifc::parsing::IfcTokenType::EMPTY:
+            {
+                arguments += " Empty ";
+                break;
+            }
+            case webifc::parsing::IfcTokenType::SET_BEGIN:
+            {
+                arguments += GetArgs(false, true);
+                break;
+            }
+            case webifc::parsing::IfcTokenType::SET_END:
+            {
+                endOfLine = true;
+                break;
+            }
+            case webifc::parsing::IfcTokenType::LABEL:
+            {
+                // read label
+                std::string obj; 
+                obj = " type: LABEL ";
+                loader->StepBack();
+                auto s=loader->GetStringArgument();
+                // read set open
+                loader->GetTokenType();
+                obj += " value " + GetArgs(loader,true) + " ";
+                arguments += obj;
+                break;
+            }
+            case webifc::parsing::IfcTokenType::STRING:
+            case webifc::parsing::IfcTokenType::ENUM:
+            case webifc::parsing::IfcTokenType::REAL:
+            case webifc::parsing::IfcTokenType::INTEGER:
+            case webifc::parsing::IfcTokenType::REF:
+            {
+                loader->StepBack();
+                std::string obj;
+                if (inObject) obj = ReadValue(t);
+                else {
+                    std::string obj; 
+                    obj += " type REF ";
+                    obj += ReadValue(t) + " ";
+                }
+                arguments += obj;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return arguments;
+}
+
+//copied from cpp test
+std::string ReadValue(webifc::parsing::IfcTokenType t)
+{
+    switch (t)
+    {
+    case webifc::parsing::IfcTokenType::STRING:
+    {
+        return loader->GetDecodedStringArgument();
+    }
+    case webifc::parsing::IfcTokenType::ENUM:
+    {
+        std::string_view s = loader->GetStringArgument();
+        return std::string(s);
+    }
+    case webifc::parsing::IfcTokenType::REAL:
+    {
+        std::string_view s = loader->GetDoubleArgumentAsString();
+        return std::string(s);
+    }
+    case webifc::parsing::IfcTokenType::INTEGER:
+    {
+        long d = loader->GetIntArgument();
+        return std::to_string(d);
+    }
+    case webifc::parsing::IfcTokenType::REF:
+    {
+        uint32_t ref = loader->GetRefArgument();
+        return std::to_string(ref);
+    }
+    default:
+        // use undefined to signal val parse issue
+        return "";
+    }
+}
+
 
     ::Geometry* GetGeometry(uint32_t id)
     {
@@ -142,6 +280,10 @@ struct Model
         r->geometry = &(geometryProcessor->GetGeometry(pg.geometryExpressID));
         r->transform = pg.flatTransformation;
         return r;
+    }
+
+    uint32_t GetMaxId() {
+        return loader->GetMaxExpressId();
     }
 };
 
@@ -213,8 +355,21 @@ int GetNumGeometries(Api* api, Model* model) {
     return model->geometryList[index];
 }
 
+uint32_t GetMaxId(Api* api, Model* model) {
+    return model->GetMaxId();
+}
+
+char* GetLine(Api* api, Model* model, uint32_t id) {
+    auto l = model->GetLine(id);
+    return strdup(l.data());
+}
+
 uint32_t GetGeometryId(Api* api, ::Geometry* geom) {
     return geom->id;
+}
+
+uint32_t GetGeometryType(Api* api, ::Geometry* geom) {
+    return geom->type;
 }
 
 int GetNumMeshes(Api* api, ::Geometry* geom) {

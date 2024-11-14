@@ -20,6 +20,14 @@ public class IfcModel(IntPtr api, IntPtr model)
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
   private static extern uint GetGeometryId(IntPtr api, IntPtr geometry);
 
+  [DllImport(WebIfc.DllName)]
+  [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
+  private static extern uint GetMaxId(IntPtr api, IntPtr geometry);
+
+  [DllImport(WebIfc.DllName)]
+  [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
+  private static extern string GetLine(IntPtr api, IntPtr geometry, uint id);
+
   public int GetNumGeometries() => GetNumGeometries(api, model);
 
   public IfcGeometry? GetGeometry(uint id)
@@ -40,4 +48,6 @@ public class IfcModel(IntPtr api, IntPtr model)
       }
     }
   }
+  public uint GetMaxId() => GetMaxId(api, model);
+  public string GetLine(uint id) => GetLine(api, model, id);
 }

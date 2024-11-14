@@ -13,7 +13,14 @@ public class ModelConverter(IGeometryConverter geometryConverter) : IModelConver
     var c = new Collection();
     foreach (var geo in model.GetGeometries())
     {
+      Console.WriteLine(geo.Type.ToString());
+      
       c.elements.Add(geometryConverter.Convert(geo));
+    }
+
+    for (uint i = 0; i < model.GetMaxId(); i++)
+    {
+      Console.WriteLine(model.GetLine(i));
     }
 
     if (c.elements.Count > 0)
