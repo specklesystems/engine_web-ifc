@@ -61,5 +61,6 @@ tests/ifcfiles/private/*.stl
 tests/ifcfiles/created.ifc
 
 !src/csharp/build
+!src/speckle/web-ifc.dll
 obj
 bin
