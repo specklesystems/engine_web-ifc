@@ -62,5 +62,6 @@ tests/ifcfiles/created.ifc
 
 !src/csharp/build
 !src/speckle/web-ifc.dll
+!src/speckle/libweb-ifc.so
 obj
 bin
