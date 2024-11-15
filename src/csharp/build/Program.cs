@@ -11,6 +11,7 @@ const string PACK = "pack";
 const string CLEAN_LOCKS = "clean-locks";
 
 const string SOLUTION = "Speckle.WebIfc.sln";
+const string BASE_PATH = "src/csharp";
 
 Target(
   CLEAN_LOCKS,
@@ -26,22 +27,32 @@ Target(
   }
 );
 
-Target(RESTORE_TOOLS, () => RunAsync("dotnet", "tool restore"));
+Target(RESTORE_TOOLS, () => RunAsync("dotnet", "tool restore", BASE_PATH));
 
-Target(FORMAT, DependsOn(RESTORE_TOOLS), () => RunAsync("dotnet", "csharpier --check ."));
+Target(
+  FORMAT,
+  DependsOn(RESTORE_TOOLS),
+  () => RunAsync("dotnet", "csharpier --check .", BASE_PATH)
+);
 
-Target(RESTORE, () => RunAsync("dotnet", $"restore {SOLUTION} --locked-mode"));
+Target(
+  RESTORE,
+  DependsOn(FORMAT),
+  () => RunAsync("dotnet", $"restore {SOLUTION} --locked-mode", BASE_PATH)
+);
 
 Target(
   BUILD,
   DependsOn(RESTORE),
   async () =>
   {
-    await RunAsync("dotnet", $"build {SOLUTION} -c Release --no-restore").ConfigureAwait(false);
+    await RunAsync("dotnet", $"build {SOLUTION} -c Release --no-restore", BASE_PATH)
+      .ConfigureAwait(false);
   }
 );
 
-static Task RunPack() => RunAsync("dotnet", $"pack {SOLUTION} -c Release -o output --no-build");
+static Task RunPack() =>
+  RunAsync("dotnet", $"pack {SOLUTION} -c Release -o output --no-build", BASE_PATH);
 
 Target(PACK, DependsOn(BUILD), RunPack);
 
