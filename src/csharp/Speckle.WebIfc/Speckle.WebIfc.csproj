@@ -15,11 +15,11 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Include="..\..\speckle\web-ifc.dll" Pack="true" PackagePath="runtimes\win-x64\native" Condition=" '$(OS)' == 'Windows_NT' ">
+    <None Include="..\..\speckle\web-ifc.dll" Pack="true" PackagePath="runtimes\win-x64\native">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>
-    <None Include="..\..\speckle\libweb-ifc.so" Pack="true" PackagePath="runtimes\linux-x64\native" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+    <None Include="..\..\speckle\libweb-ifc.so" Pack="true" PackagePath="runtimes\linux-x64\native">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>

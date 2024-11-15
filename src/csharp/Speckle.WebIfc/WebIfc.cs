@@ -8,21 +8,20 @@ namespace Speckle.WebIfc;
 [SuppressMessage("Security", "CA5393:Do not use unsafe DllImportSearchPath value")]
 public static class WebIfc
 {
-  #if WINDOWS
+#if WINDOWS
   private const string DllName = "web-ifc.dll";
   private const CharSet Set = CharSet.Ansi;
-  #else
+#else
   private const string DllName = "libweb-ifc.so";
   private const CharSet Set = CharSet.Auto;
-  #endif
+#endif
 
   private const DllImportSearchPath ImportSearchPath = DllImportSearchPath.AssemblyDirectory;
-  
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern IntPtr InitializeApi();
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern void FinalizeApi(IntPtr api);
@@ -34,8 +33,7 @@ public static class WebIfc
   [DllImport(DllName, CharSet = Set)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern string GetVersion();
-  
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern IntPtr GetMesh(IntPtr geometry, int index);
@@ -47,8 +45,7 @@ public static class WebIfc
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern uint GetGeometryType(IntPtr geometry);
-  
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern uint GetLineId(IntPtr line);
@@ -60,8 +57,7 @@ public static class WebIfc
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern string GetLineArguments(IntPtr line);
-  
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern int GetNumVertices(IntPtr mesh);
@@ -85,8 +81,7 @@ public static class WebIfc
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern IntPtr GetColor(IntPtr mesh);
-  
-  
+
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern IntPtr GetGeometryFromId(IntPtr model, uint id);
@@ -106,5 +101,4 @@ public static class WebIfc
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern IntPtr GetLineFromModel(IntPtr model, uint id);
-
 }
