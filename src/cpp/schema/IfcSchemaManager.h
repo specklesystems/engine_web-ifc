@@ -9,6 +9,7 @@
 #include <string_view>
 #include <unordered_set>
 #include <cstdint>
+#include <string>
 
 
 namespace webifc::schema {
