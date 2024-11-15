@@ -4,4 +4,9 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Bullseye" />
+    <PackageReference Include="Glob" />
+    <PackageReference Include="SimpleExec" />
+  </ItemGroup>
 </Project>

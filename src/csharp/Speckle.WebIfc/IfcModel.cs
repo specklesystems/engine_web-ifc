@@ -2,28 +2,27 @@ using System.Runtime.InteropServices;
 
 namespace Speckle.WebIfc;
 
-public class IfcModel( IntPtr model)
+public class IfcModel(IntPtr model)
 {
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern IntPtr GetGeometryFromId( IntPtr model, uint id);
+  private static extern IntPtr GetGeometryFromId(IntPtr model, uint id);
 
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern int GetNumGeometries( IntPtr model);
+  private static extern int GetNumGeometries(IntPtr model);
 
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern IntPtr GetGeometryFromIndex( IntPtr model, int index);
-
-
-  [DllImport(WebIfc.DllName)]
-  [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern uint GetMaxId( IntPtr model);
+  private static extern IntPtr GetGeometryFromIndex(IntPtr model, int index);
 
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
-  private static extern IntPtr GetLineFromModel( IntPtr model, uint id);
+  private static extern uint GetMaxId(IntPtr model);
+
+  [DllImport(WebIfc.DllName)]
+  [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
+  private static extern IntPtr GetLineFromModel(IntPtr model, uint id);
 
   public int GetNumGeometries() => GetNumGeometries(model);
 
@@ -41,10 +40,11 @@ public class IfcModel( IntPtr model)
       var gPtr = GetGeometryFromIndex(model, i);
       if (gPtr != IntPtr.Zero)
       {
-        yield return new IfcGeometry( gPtr);
+        yield return new IfcGeometry(gPtr);
       }
     }
   }
+
   public uint GetMaxId() => GetMaxId(model);
 
   public IfcLine? GetLine(uint id)

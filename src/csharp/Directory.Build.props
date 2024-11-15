@@ -16,12 +16,10 @@
     <Authors>Speckle</Authors>
     <Copyright>Copyright (c) AEC Systems Ltd</Copyright>
     <PackageProjectUrl>https://speckle.systems/</PackageProjectUrl>
-    <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/specklesystems/engine_web-ifc</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>speckle</PackageTags>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Label="Nuget Package Properties">

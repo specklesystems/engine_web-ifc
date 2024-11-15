@@ -4,7 +4,6 @@ namespace Speckle.WebIfc;
 
 public class IfcLine(IntPtr line)
 {
-
   [DllImport(WebIfc.DllName)]
   [DefaultDllImportSearchPaths(WebIfc.ImportSearchPath)]
   private static extern uint GetLineId(IntPtr line);

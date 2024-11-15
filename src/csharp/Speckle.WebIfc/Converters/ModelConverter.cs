@@ -14,12 +14,12 @@ public class ModelConverter(IGeometryConverter geometryConverter) : IModelConver
     foreach (var geo in model.GetGeometries())
     {
       Console.WriteLine(geo.Type.ToString());
-      
+
       c.elements.Add(geometryConverter.Convert(geo));
     }
 
     var max = model.GetMaxId();
-    for (uint i = 0; i <max; i++)
+    for (uint i = 0; i < max; i++)
     {
       var l = model.GetLine(i);
       if (l is not null)
