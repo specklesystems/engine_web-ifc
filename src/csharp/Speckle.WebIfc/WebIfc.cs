@@ -10,12 +10,13 @@ public static class WebIfc
 {
   #if WINDOWS
   private const string DllName = "web-ifc.dll";
+  private const CharSet Set = CharSet.Ansi;
   #else
   private const string DllName = "libweb-ifc.so";
+  private const CharSet Set = CharSet.Auto;
   #endif
 
   private const DllImportSearchPath ImportSearchPath = DllImportSearchPath.AssemblyDirectory;
-  private const CharSet Set = CharSet.Auto;
   
   
   [DllImport(DllName)]
