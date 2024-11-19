@@ -45,6 +45,10 @@ public static class WebIfc
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
   public static extern uint GetGeometryType(IntPtr geometry);
+  
+  [DllImport(DllName)]
+  [DefaultDllImportSearchPaths(ImportSearchPath)]
+  public static extern uint GetGeometryId(IntPtr geometry);
 
   [DllImport(DllName)]
   [DefaultDllImportSearchPaths(ImportSearchPath)]
