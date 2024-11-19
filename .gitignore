@@ -59,3 +59,9 @@ examples/nodejs/*.ifc
 tests/ifcfiles/private/*.ifc
 tests/ifcfiles/private/*.stl
 tests/ifcfiles/created.ifc
+
+!src/csharp/build
+!src/speckle/web-ifc.dll
+!src/speckle/libweb-ifc.so
+obj
+bin
